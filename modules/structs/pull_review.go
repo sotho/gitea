@@ -69,6 +69,18 @@ type PullReviewComment struct {
 	HTMLPullURL string `json:"pull_request_url"`
 }
 
+// PullComment represents a comment on the pull request itself (not a comment attached to code)
+type PullComment struct {
+	ID     int64  `json:"id"`
+	Body   string `json:"body"`
+	Poster *User  `json:"user"`
+
+	// swagger:strfmt date-time
+	Created time.Time `json:"created_at"`
+	// swagger:strfmt date-time
+	Updated time.Time `json:"updated_at"`
+}
+
 // CreatePullReviewOptions are options to create a pull review
 type CreatePullReviewOptions struct {
 	Event    ReviewStateType           `json:"event"`

@@ -1238,3 +1238,62 @@ func GetPullRequestCommits(ctx *context.APIContext) {
 
 	ctx.JSON(http.StatusOK, &apiCommits)
 }
+
+// GetPullRequestComments gets all comments associated with a given PR
+func GetPullRequestComments(ctx *context.APIContext) {
+	// swagger:operation GET /repos/{owner}/{repo}/pulls/{index}/comments repository repoGetPullRequestComments
+	// ---
+	// summary: Get comments for a pull request
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: owner
+	//   in: path
+	//   description: owner of the repo
+	//   type: string
+	//   required: true
+	// - name: repo
+	//   in: path
+	//   description: name of the repo
+	//   type: string
+	//   required: true
+	// - name: index
+	//   in: path
+	//   description: index of the pull request to get
+	//   type: integer
+	//   format: int64
+	//   required: true
+	// - name: page
+	//   in: query
+	//   description: page number of results to return (1-based)
+	//   type: integer
+	// - name: limit
+	//   in: query
+	//   description: page size of results
+	//   type: integer
+	// responses:
+	//   "200":
+	//     "$ref": "#/responses/PullCommentList"
+	//   "404":
+	//     "$ref": "#/responses/notFound"
+
+	opts := &models.FindCommentsOptions{
+		ListOptions: utils.GetListOptions(ctx),
+		RepoID:      ctx.Repo.Repository.ID,
+		Type:        models.CommentTypeComment,
+		IssueID:     ctx.ParamsInt64(":index"),
+	}
+
+	comments, err := models.FindComments(opts)
+	if err != nil {
+		ctx.Error(http.StatusInternalServerError, "FindComments", err)
+		return
+	}
+
+	if err = models.CommentList(comments).LoadPosters(); err != nil {
+		ctx.Error(http.StatusInternalServerError, "LoadPosters", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, convert.ToAPIComments(comments, ctx.User))
+}

@@ -194,3 +194,23 @@ func ToAPIPullRequest(pr *models.PullRequest, doer *models.User) *api.PullReques
 
 	return apiPullRequest
 }
+
+// ToAPIPullRequest assumes following fields have been assigned with valid values:
+// Required - Issue
+// Optional - Merger
+func ToAPIComments(comments []*models.Comment, doer *models.User) []*api.PullComment {
+	apiComments := make([]*api.PullComment, 0, len(comments))
+
+	for _, comment := range comments {
+		apiComment := &api.PullComment{
+			ID:      comment.ID,
+			Body:    comment.Content,
+			Poster:  ToUser(comment.Poster, doer),
+			Created: comment.CreatedUnix.AsTime(),
+			Updated: comment.UpdatedUnix.AsTime(),
+		}
+		apiComments = append(apiComments, apiComment)
+	}
+
+	return apiComments
+}
